@@ -1,10 +1,10 @@
-# Handoff: Fantasy MMADness Mobile App
+# Handoff: Fantasy MMAdness Mobile App
 
 ## Overview
-A mobile-first fantasy sports app for combat sports (MMA, Boxing, Bare Knuckle, Kickboxing, Pro Wrestling). Users predict fight stats/outcomes via scorecards, join leagues and season-long "Fantasy Cards," watch live fights with real-time scoring, and affiliates promote fights for referral leagues. Domain: fantasymmadness.com.
+A mobile-first fantasy sports app for combat sports (MMA, Boxing, Bare Knuckle, Kickboxing, Pro Wrestling). Brand spelling is **Fantasy MMAdness** (capital MMA, lowercase "dness") — confirmed against fantasymmadness.com. Users predict fight stats/outcomes via scorecards, join leagues and season-long "Fantasy Cards," watch live fights with real-time scoring, and affiliates promote fights for referral leagues. Domain: fantasymmadness.com.
 
 ## About the Design Files
-The bundled HTML file (`FantasyMMADNESS.dc.html`) is a **design reference/prototype** built in an internal component format — not production code. It renders correctly standalone in a browser (open it directly) so you can click through every screen and interaction, but the actual product should be **rebuilt natively in your target stack** (React Native, Flutter, native iOS/Android, or a mobile web framework — whatever this codebase already uses). Treat this file as the spec for layout, copy, states, and interaction — not something to transplant directly. Ignore the custom tags/attributes it uses internally (`<image-slot>`, `hint-*`, `data-*`) — these are prototype-only plumbing standing in for real image upload/CDN and internal component wiring.
+The bundled HTML file (`FantasyMMADNESS.dc.html`) is a **design reference/prototype** built in an internal component format — not production code. Open it directly in a browser to click through every screen and interaction (it's wrapped in an iOS device frame via `ios-frame.jsx` for presentation only). The actual product should be **rebuilt natively in your target stack** (React Native, Flutter, native iOS/Android, or a mobile web framework — whatever this codebase already uses). Treat this file as the spec for layout, copy, states, and interaction — not something to transplant directly. Ignore the custom tags/attributes it uses internally (`<image-slot>`, `hint-*`, `data-*`, the `ios-frame.jsx` bezel) — these are prototype-only plumbing standing in for real image upload/CDN, internal component wiring, and device-preview chrome.
 
 ## Fidelity
 **High-fidelity.** Colors, typography, spacing, copy, and micro-interactions (animations, glows, sound cues) are intentional and final. Recreate pixel-close using your codebase's design system/component library where one exists; otherwise implement using the values documented below.
@@ -12,7 +12,7 @@ The bundled HTML file (`FantasyMMADNESS.dc.html`) is a **design reference/protot
 ## Screen Map
 1. **Home** — hero (fighter photos + title), stats bar (predictors/prizes/live events/leaderboards, clickable), sport selector carousel, featured banner + featured fight detail, upcoming events carousel, community predictions (auto-cycles all open fights every ~4.5s), rewards row (daily reward, coin wallet, mini leaderboard, streak bonus w/ live countdown), apparel carousel, affiliate promoter banner + social icons + treasure chest (buy-coins CTA).
 2. **Contests** — full list of open fights across all sports/affiliates, filterable, posters use `contain` fit (never crops fighter heads).
-3. **Make Predictions** — per-sport scorecards (Boxing/Bare Knuckle, MMA/Kickboxing, Pro Wrestling) with round-by-round stat inputs, KO/Survival outcome picker (auto-slides the other fighter to Survival pts), AI scouting notes.
+3. **Make Predictions** — per-sport scorecards (Boxing/Bare Knuckle, MMA/Kickboxing, Pro Wrestling) with round-by-round stat inputs, winner pick, AI scouting notes. Submitting checks the user's FM balance first (see Monetization Funnel below).
 4. **Leaderboard** — Hall of Fame (past champions with belt graphic), current season rankings.
 5. **Leagues** — Affiliate alerts (new fight / fight week notices, auto-generated), Fantasy Cards (season-long cross-genre draft — pick 1 fighter per genre, score accumulates across the whole campaign span), public leagues browser, head-to-head challenges.
 6. **Watch Party** — live match clock, round-by-round strike tracker, crowd reactions, Cage Cam friend chat (live feed + user text input), animated stadium-light background (flickering red/blue + flashing bulbs) over an arena photo.
@@ -22,14 +22,22 @@ The bundled HTML file (`FantasyMMADNESS.dc.html`) is a **design reference/protot
 10. **Blogs & Fight News** (menu item) — full blog list + treasure chest buy-coins CTA.
 11. **Menu drawer** (hamburger, top-left) — links to every tab above plus Rules/Support.
 
+## Monetization Funnel (added this pass — critical for revenue)
+- **FM Coins pricing stays fractional/bulk, not 1:1 with USD**: 1,000 FM = $0.99, 5,000 FM = $3.99 (badged **"Most Popular"**), 15,000 FM = $9.99. This matches the entry-fee scale already in the app (25–200 FM per pick) — do not rescale to 1 coin = $1 without also reworking every entry fee across scorecards, Shadow Fights, and Fantasy Cards.
+- **Insufficient-funds guard on every entry point.** All three submit paths (`submitScorecard`, `submitBoxingScorecard`, `submitMmaScorecard`, `submitFantasyCard`) now check the user's FM balance against the entry fee *before* allowing submission. If short, the flow shows a toast and opens the buy-coins modal directly — this is the highest-intent purchase moment in the app (user has already built their pick) and must not be a dead end.
+- **Signup bonus**: the Join modal now leads with "🎁 Sign up now — get 500 FM coins free to make your first picks" above the email/password fields, to convert new visitors into their first prediction immediately.
+- **Still to build for production**: real payment provider wiring (Stripe / Apple & Google IAP) behind the buy-coins modal; server-side balance as source of truth (the prototype deducts client-side only); a post-submit upsell (e.g. multi-entry bonus, enter a second sport) is recommended but not yet built.
+
 ## SEO (current state vs. what the backend must own)
 The prototype's `<head>` carries page-level `<title>`, meta description/keywords (Boxing, UFC, MMA, Kickboxing, BKFC, Pro Wrestling), Open Graph tags, and a JSON-LD schema block — copy these into the real site's static shell as a baseline.
 **This is a single-page client app and cannot do real SEO on its own.** For actual Google indexing of blogs/fighters/events, the backend must provide: server-side rendering (or static generation) so each blog post / fighter profile / event has its own real crawlable URL; an auto-generated, auto-growing `sitemap.xml` submitted to Search Console as content is added; per-page unique meta title/description/keywords generated from each blog's own fight genre/fighters (Boxing, UFC, MMA, Kickboxing, BKFC, Wrestling keyword sets); structured data (Article/SportsEvent schema) per blog/event page. An "AI SEO bot" running 24/7 is a backend content pipeline (auto-tag new blogs with the right combat-sport keywords, auto-build meta tags, auto-ping sitemap on publish) — not something the client app can execute itself.
 
-## Scoring System (critical business logic)
-- **Boxing / Bare Knuckle**: HP (Head Punches), BP (Body Punches), TP (Total Punches — independent number, NOT auto-summed from HP+BP), KO/Survival outcome (KO winner = 500 pts, other fighter auto-gets Survival = 25 pts; if it goes the distance, a 500-pt bonus is randomly awarded to one round for either corner — not a user pick).
-- **MMA / Kickboxing (UFC style)**: HP, BP, Kicks, Knees, Elbows — same KO/Survival auto-slide mechanic as boxing.
-- **Pro Wrestling**: no rounds/rounds-based structure — scored over the whole match. Categories: Head Punches, Body Punches, Kicks, Power Moves (slams/suplexes/powerbombs), Finishers (signature match-ending sequences, counts as attempt whether it wins or not). Winner gets +1,000 pts, loser still gets +500 pts (not the same 25-pt survival rule as strike sports).
+## Scoring System (critical business logic — verified against fantasymmadness.com FAQ)
+- **Core rule (confirmed on live site FAQ): a KO does NOT short-circuit scoring.** Even if the fight ends in a knockout, the fight is still fully scored as if it went the distance, so the game doesn't skew toward whoever happens to pick a KO. The old "KO winner = 500pts / Survival = 25pts" auto-slide mechanic was **incorrect** and has been removed from copy/labels; the winner-by-KO pick is now framed as bragging-rights only and does not itself award points.
+- **Boxing / Bare Knuckle**: HP (Head Punches), BP (Body Punches), TP (Total Punches — independent number, NOT auto-summed from HP+BP), plus a Winner pick. Full stat categories always count regardless of how the fight ends.
+- **MMA / Kickboxing (UFC style)**: HP, BP, Kicks, Knees, Elbows, plus a Winner pick — same full-distance scoring rule as boxing.
+- **Pro Wrestling**: no rounds-based structure — scored over the whole match. Categories: Head Punches, Body Punches, Kicks, Power Moves (slams/suplexes/powerbombs), Finishers (signature match-ending sequences, counts as attempt whether it wins or not).
+- **Real point scale (from site's Scoring Preview)**: Correct Winner 100 · Correct Method 75 · Correct Round 50 · Exact Score 25 · Perfect Fight 250. The prototype's scorecards currently only capture stat-attempt tallies and a winner pick — Method and Round predictions are not yet built and should be added to match this real scoring model.
 - **All stat categories count attempts thrown, not just landed strikes** — this is a deliberate rule, surface it in any tooltip/help copy.
 - Every scorecard category needs a plain-language description visible under its label (large, white text, ~10px+, bold) explaining exactly what counts.
 
@@ -67,10 +75,11 @@ Fixed-length campaigns (first fight of a stretch to the last, e.g. "JUL 27 – A
 - All fighter/event/apparel photos are user-uploaded placeholders (`<image-slot>` in the prototype) — build real upload → CDN → carousel wiring, plus real background-removal (e.g. remove.bg API) for fighter cutouts if that visual treatment is wanted at scale, since the current transparent PNGs were manually processed.
 
 ## Payments & Coins
-"FM Coins" is the in-app currency; the buy-coins modal (opened from the wallet pill, treasure chest, or "addcoins" triggers) is where a real payment provider (Stripe, Apple/Google IAP, etc.) must be wired in — coins should credit the user's account automatically on successful payment.
+"FM Coins" is the in-app currency; the buy-coins modal (opened from the wallet pill, treasure chest, insufficient-funds redirects, or "addcoins" triggers) is where a real payment provider (Stripe, Apple/Google IAP, etc.) must be wired in — coins should credit the user's account automatically on successful payment, and balance/entry-fee deduction must move server-side (currently client-state only in the prototype).
 
 ## Files in This Bundle
 - `FantasyMMADNESS.dc.html` — full interactive prototype, open directly in a browser to click through every screen.
+- `support.js`, `image-slot.js`, `ios-frame.jsx` — prototype runtime/presentation plumbing (not app logic — see "About the Design Files").
 - `uploads/` — background/branding images referenced above.
 
 Open the HTML file and click through Home → Contests → Make Predictions → Leagues → Watch Party → Profile → Settings → Free Demo → Blogs to see every state and copy exactly as designed.

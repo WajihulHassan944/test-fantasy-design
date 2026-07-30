@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fantasy MMadness — Fantasy Boxing, UFC, MMA, Kickboxing, BKFC & Pro Wrestling Predictions</title>
-<meta name="description" content="Fantasy MMadness is the one home for every combat sports fan — predict Boxing, UFC, MMA, Kickboxing, Bare Knuckle (BKFC), and Pro Wrestling fights, score real cash prizes, and climb the leaderboard. Fantasy sports for combat sports.">
+<title>Fantasy MMAdness — Fantasy Boxing, UFC, MMA, Kickboxing, BKFC & Pro Wrestling Predictions</title>
+<meta name="description" content="Fantasy MMAdness is the one home for every combat sports fan — predict Boxing, UFC, MMA, Kickboxing, Bare Knuckle (BKFC), and Pro Wrestling fights, score real cash prizes, and climb the leaderboard. Fantasy sports for combat sports.">
 <meta name="keywords" content="fantasy MMA, fantasy boxing, fantasy UFC, fantasy kickboxing, fantasy BKFC, fantasy bare knuckle boxing, fantasy pro wrestling, fantasy WWE, fight predictions, MMA predictions, boxing predictions, combat sports fantasy app, fight scorecards, MMA leaderboard, win real money fantasy fighting">
-<meta property="og:title" content="Fantasy MMadness — Predict Every Combat Sport">
+<meta property="og:title" content="Fantasy MMAdness — Predict Every Combat Sport">
 <meta property="og:description" content="One app for Boxing, UFC, MMA, Kickboxing, BKFC & Pro Wrestling fantasy predictions. Score fights, win prizes, join leagues.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.fantasymmadness.com">
@@ -14,15 +14,13 @@
 {
   "@context": "https://schema.org",
   "@type": "SportsActivityLocation",
-  "name": "Fantasy MMadness",
+  "name": "Fantasy MMAdness",
   "url": "https://www.fantasymmadness.com",
   "description": "Fantasy predictions app for Boxing, UFC, MMA, Kickboxing, Bare Knuckle (BKFC), and Pro Wrestling.",
   "sameAs": ["https://twitter.com/fantasymmadness", "https://instagram.com/fantasymmadness"],
   "about": ["Boxing", "UFC", "Mixed Martial Arts", "Kickboxing", "Bare Knuckle Fighting Championship", "Pro Wrestling", "WWE"]
 }
 </script>
-<script src="./vendor/react.production.min.js"></script>
-<script src="./vendor/react-dom.production.min.js"></script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -81,9 +79,11 @@
 </style>
 </helmet>
 
-<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="393,852">
+<div style="min-height:100vh;width:100%;display:flex;align-items:center;justify-content:center;background:#1a1c22;padding:40px;box-sizing:border-box;">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" width="{{ 393 }}" height="{{ 852 }}" hint-size="393,852">
   {{ screen }}
 </x-import>
+</div>
 
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:393,&quot;height&quot;:852}}">
@@ -132,8 +132,8 @@ class Component extends DCLogic {
     shadowPlays: { sf1: 1284, sf2: 962, sf3: 2140 },
     shadowPicks: {},
     shadowFights: [
-      { id: 'sf1', genre: 'mma', tag: 'MMA', f1: 'JONES', f2: 'GANE', winner: 'a', rounds: 5, categories: 'HP · BP · KI · KO/SURVIVAL', pot: 3200, buyIn: 25, status: 'live', goLiveIn: 0, lobby: 340 },
-      { id: 'sf2', genre: 'boxing', tag: 'BOXING', f1: 'MCGREGOR', f2: 'DIAZ', winner: 'b', rounds: 12, categories: 'HP · BP · TP · RW/RL · KO/SURVIVAL', pot: 4600, buyIn: 25, status: 'scheduled', goLiveIn: 35, lobby: 128 },
+      { id: 'sf1', genre: 'mma', tag: 'MMA', f1: 'JONES', f2: 'GANE', winner: 'a', rounds: 5, categories: 'HP · BP · KI · Winner Pick', pot: 3200, buyIn: 25, status: 'live', goLiveIn: 0, lobby: 340 },
+      { id: 'sf2', genre: 'boxing', tag: 'BOXING', f1: 'MCGREGOR', f2: 'DIAZ', winner: 'b', rounds: 12, categories: 'HP · BP · TP · RW/RL · Winner Pick', pot: 4600, buyIn: 25, status: 'scheduled', goLiveIn: 35, lobby: 128 },
       { id: 'sf3', genre: 'wrestling', tag: 'PRO WRESTLING', f1: 'ADESANYA', f2: 'PEREIRA', winner: 'b', rounds: null, categories: 'HP · BP · KI · PM · FM', pot: 1800, buyIn: 25, status: 'scheduled', goLiveIn: 90, lobby: 62 },
     ],
     publicLeagues: [
@@ -142,7 +142,7 @@ class Component extends DCLogic {
       { id: 'pl3', name: 'Weekend Warriors League', host: 'Prediction_Prof', online: 88, pot: 1500, members: 340, joined: false },
     ],
     fantasyCampaigns: [
-      { id: 'fc1', name: 'Summer Combat Season', host: 'FantasyMMADness (Official)', span: 'JUL 27 – AUG 25', pot: 8500, entryFee: 200, joined: false, roster: null },
+      { id: 'fc1', name: 'Summer Combat Season', host: 'FantasyMMAdness (Official)', span: 'JUL 27 – AUG 25', pot: 8500, entryFee: 200, joined: false, roster: null },
       { id: 'fc2', name: 'KO_Beast\'s Cross-Genre Cup', host: 'KO_Beast', span: 'JUL 27 – AUG 25', pot: 3100, entryFee: 100, joined: false, roster: null },
     ],
     fantasyDraft: { boxing: null, mma: null, bareknuckle: null, kickboxing: null, wrestling: null },
@@ -414,6 +414,7 @@ class Component extends DCLogic {
   submitScorecard = (ev) => {
     const { winner } = this.state.scorecardDraft;
     if (!winner) { this.showToast('Pick a winner first'); return; }
+    if (this.state.coins < 100) { this.showToast('Not enough FM coins — add more to enter'); this.openModal('addcoins'); return; }
     this.playBell();
     this.setState(s => {
       const cur = s.eventVotes[ev.id] || { a: 50, b: 50 };
@@ -442,6 +443,7 @@ class Component extends DCLogic {
     const { winner, outcome } = this.state.boxingDraft;
     if (!winner) { this.showToast('Pick a winner first'); return; }
     if (!outcome) { this.showToast('Pick KO or Survival'); return; }
+    if (this.state.coins < 100) { this.showToast('Not enough FM coins — add more to enter'); this.openModal('addcoins'); return; }
     this.playBell();
     this.setState(s => {
       const cur = s.eventVotes[ev.id] || { a: 50, b: 50 };
@@ -468,6 +470,7 @@ class Component extends DCLogic {
     const { winner, outcome } = this.state.mmaDraft;
     if (!winner) { this.showToast('Pick a winner first'); return; }
     if (!outcome) { this.showToast('Pick KO or Survival'); return; }
+    if (this.state.coins < 100) { this.showToast('Not enough FM coins — add more to enter'); this.openModal('addcoins'); return; }
     this.playBell();
     this.setState(s => {
       const cur = s.eventVotes[ev.id] || { a: 50, b: 50 };
@@ -507,7 +510,7 @@ class Component extends DCLogic {
   submitFantasyCard = (campaign) => {
     const d = this.state.fantasyDraft;
     if (!d.boxing || !d.mma || !d.bareknuckle || !d.kickboxing || !d.wrestling) { this.showToast('Pick one fighter from every genre first'); return; }
-    if (this.state.coins < campaign.entryFee) { this.showToast('Not enough FM coins'); return; }
+    if (this.state.coins < campaign.entryFee) { this.showToast('Not enough FM coins — add more to draft'); this.openModal('addcoins'); return; }
     this.playBell(); this.playCheer();
     this.setState(s => ({
       fantasyCampaigns: s.fantasyCampaigns.map(c => c.id === campaign.id ? { ...c, joined: true, roster: d } : c),
@@ -698,7 +701,7 @@ class Component extends DCLogic {
 
   markNotifsRead = () => this.setState({ notifCount: 0 });
 
-  joinNow = () => { this.playCheer(); this.playBell(); this.showToast('Welcome to Fantasy MMADNESS!'); this.closeModal(); };
+  joinNow = () => { this.playCheer(); this.playBell(); this.showToast('Welcome to Fantasy MMAdness!'); this.closeModal(); };
 
   copyReferral = () => this.showToast('Referral link copied!');
   shareToSocial = (platform) => {
@@ -971,7 +974,7 @@ class Component extends DCLogic {
             background: 'linear-gradient(90deg,#f2b544,#ef4444,#a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             animation: 'wordmarkGlow 2.6s ease-in-out infinite', textShadow: 'none'
           }
-        }, 'FANTASY MMADNESS'),
+        }, 'FANTASY MMAdness'),
         React.createElement('div', { style: { fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,.75)', marginTop: 4 } }, 'The prediction game every fight fan is talking about.'),
         React.createElement('div', {
           onClick: () => this.openModal('join'),
@@ -1188,7 +1191,7 @@ class Component extends DCLogic {
             background: 'linear-gradient(90deg,#a855f7 0%,#a855f7 35%,#ef4444 65%,#ef4444 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             WebkitTextStroke: '1px rgba(0,0,0,.25)', animation: 'wordmarkGlow 2.6s ease-in-out infinite'
           }
-        }, 'MMADNESS'),
+        }, 'MMAdness'),
         React.createElement('div', { style: { fontSize: 6.5, letterSpacing: .6, color: 'rgba(255,255,255,.55)', fontWeight: 700, marginTop: 2 } }, 'COMBAT PREDICTION GAME'),
         React.createElement('div', { style: { fontSize: 8.5, fontWeight: 600, marginTop: 7, lineHeight: 1.35 } },
           'PREDICT EVERY FIGHT.', React.createElement('br'),
@@ -1665,15 +1668,15 @@ class Component extends DCLogic {
         ),
         g.hasOutcome && React.createElement('div', null,
           React.createElement('div', { style: { fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,.5)', marginBottom: 6 } }, 'MATCH OUTCOME'),
-          React.createElement('div', { style: { fontSize: 7.5, fontWeight: 700, color: 'rgba(255,255,255,.4)', marginBottom: 6 } }, 'Pick who wins by KO for 500 pts. If it goes the distance instead, a 500-pt bonus is randomly inserted into one round for either corner.'),
+          React.createElement('div', { style: { fontSize: 7.5, fontWeight: 700, color: 'rgba(255,255,255,.4)', marginBottom: 6 } }, 'Every fight is scored fully as if it goes the distance — even on a KO. This pick is for bragging rights and doesn\'t change your stat score.'),
           React.createElement('div', { style: { display: 'flex', gap: 6, marginBottom: 6 } },
-            [['a', fa + ' WINS BY KO · 500 PTS'], ['b', fb + ' WINS BY KO · 500 PTS']].map(([o, label]) => React.createElement('div', {
+            [['a', fa + ' WINS BY KO'], ['b', fb + ' WINS BY KO']].map(([o, label]) => React.createElement('div', {
               key: o, onClick: () => this.setDemoOutcome(o),
               style: { flex: 1, textAlign: 'center', padding: '10px 4px', borderRadius: 8, fontSize: 9.5, fontWeight: 900, cursor: 'pointer', background: s.demoCard.outcome === o ? '#ef4444' : 'rgba(255,255,255,.06)', color: '#fff' }
             }, label))
           ),
-          s.demoCard.outcome && React.createElement('div', { style: { fontSize: 9, fontWeight: 800, color: '#22c55e', marginBottom: 14 } }, '✓ Picked ' + (s.demoCard.outcome === 'a' ? fa : fb) + ' by KO · 500 PTS if correct'),
-          !s.demoCard.outcome && React.createElement('div', { style: { fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,.4)', marginBottom: 14 } }, 'No pick needed if you think it goes the distance — that bonus is automatic.')
+          s.demoCard.outcome && React.createElement('div', { style: { fontSize: 9, fontWeight: 800, color: '#22c55e', marginBottom: 14 } }, '✓ Picked ' + (s.demoCard.outcome === 'a' ? fa : fb) + ' by KO'),
+          !s.demoCard.outcome && React.createElement('div', { style: { fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,.4)', marginBottom: 14 } }, 'No pick needed — full-fight scoring applies either way.')
         ),
         !g.hasOutcome && React.createElement('div', { style: { fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.4)', marginBottom: 14 } }, 'Wrestling scores on full-match totals + your winner pick — no KO/Survival split.'),
         React.createElement('div', { style: { display: 'flex', gap: 8 } },
@@ -2534,10 +2537,11 @@ class Component extends DCLogic {
       React.createElement('div', { key: 'b', style: { fontSize: 26, fontWeight: 800, marginBottom: 12, color: '#f2b544', animation: 'moneyPulseGold 1.8s ease-in-out infinite' } }, s.coins.toLocaleString() + ' coins'),
       React.createElement('div', { key: 'l', style: { fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.5)', marginBottom: 8 } }, 'ADD MORE'),
       React.createElement('div', { key: 'p', style: { display: 'flex', flexDirection: 'column', gap: 8 } },
-        [[1000, '$0.99'], [5000, '$3.99'], [15000, '$9.99']].map(([amt, price]) => React.createElement('div', {
+        [[1000, '$0.99', false], [5000, '$3.99', true], [15000, '$9.99', false]].map(([amt, price, popular]) => React.createElement('div', {
           key: amt, onClick: () => this.addCoins(amt, price),
-          style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', borderRadius: 10, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(242,181,68,.3)', cursor: 'pointer' }
+          style: { position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', borderRadius: 10, background: popular ? 'rgba(242,181,68,.1)' : 'rgba(255,255,255,.05)', border: popular ? '1.5px solid #f2b544' : '1px solid rgba(242,181,68,.3)', cursor: 'pointer' }
         },
+          popular && React.createElement('div', { style: { position: 'absolute', top: -9, left: 12, fontSize: 8.5, fontWeight: 900, letterSpacing: .4, color: '#2b1b00', background: 'linear-gradient(90deg,#ffd873,#f2b544)', borderRadius: 999, padding: '2px 8px' } }, 'MOST POPULAR'),
           React.createElement('span', { style: { fontWeight: 800 } }, amt.toLocaleString() + ' FM'),
           React.createElement('span', { style: { fontWeight: 800, color: '#f2b544', animation: 'moneyPulseGold 1.8s ease-in-out infinite' } }, price)
         ))
@@ -2546,8 +2550,9 @@ class Component extends DCLogic {
 
     if (s.modal === 'join') return overlay([
       closeBtn,
-      React.createElement('div', { key: 't', style: { fontFamily: "'Anton',sans-serif", fontSize: 20, color: '#f2b544', marginBottom: 4 } }, 'JOIN FANTASY MMADNESS'),
-      React.createElement('div', { key: 's', style: { fontSize: 11, color: 'rgba(255,255,255,.5)', fontWeight: 700, marginBottom: 14 } }, 'Free to play. Real prizes.'),
+      React.createElement('div', { key: 't', style: { fontFamily: "'Anton',sans-serif", fontSize: 20, color: '#f2b544', marginBottom: 4 } }, 'JOIN FANTASY MMAdness'),
+      React.createElement('div', { key: 's', style: { fontSize: 11, color: 'rgba(255,255,255,.5)', fontWeight: 700, marginBottom: 8 } }, 'Free to play. Real prizes.'),
+      React.createElement('div', { key: 'bonus', style: { fontSize: 11, fontWeight: 900, color: '#22c55e', background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.4)', borderRadius: 8, padding: '8px 10px', marginBottom: 14 } }, '🎁 Sign up now — get 500 FM coins free to make your first picks'),
       React.createElement('input', { key: 'e', placeholder: 'Email address', style: { width: '100%', padding: '12px 14px', borderRadius: 10, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.15)', color: '#fff', fontSize: 13, marginBottom: 10, fontFamily: "'Rajdhani',sans-serif" } }),
       React.createElement('input', { key: 'p', type: 'password', placeholder: 'Create password', style: { width: '100%', padding: '12px 14px', borderRadius: 10, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.15)', color: '#fff', fontSize: 13, marginBottom: 14, fontFamily: "'Rajdhani',sans-serif" } }),
       React.createElement('div', { key: 'b', onClick: this.joinNow, style: { textAlign: 'center', padding: '13px 0', borderRadius: 999, background: 'linear-gradient(90deg,#ffd873,#f2b544)', color: '#2b1b00', fontWeight: 900, fontSize: 14, cursor: 'pointer' } }, 'JOIN NOW »')
@@ -2661,15 +2666,15 @@ class Component extends DCLogic {
           }, label))
         ),
         React.createElement('div', { key: 'ol', style: { fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,.5)', marginBottom: 4 } }, 'MATCH OUTCOME'),
-        React.createElement('div', { key: 'ol2', style: { fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,.4)', marginBottom: 6 } }, 'Pick who wins by KO for 500 pts. If it goes the distance instead, a 500-pt bonus is randomly inserted into one round for either corner.'),
+        React.createElement('div', { key: 'ol2', style: { fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,.4)', marginBottom: 6 } }, 'Every fight is scored fully as if it goes the distance — even on a KO. This pick is for bragging rights and doesn\'t change your stat score.'),
         React.createElement('div', { key: 'orow', style: { display: 'flex', gap: 6, marginBottom: 6 } },
-          [['a', ev.f1 + ' KO · 500 PTS'], ['b', ev.f2 + ' KO · 500 PTS']].map(([o, label]) => React.createElement('div', {
+          [['a', ev.f1 + ' WINS BY KO'], ['b', ev.f2 + ' WINS BY KO']].map(([o, label]) => React.createElement('div', {
             key: o, onClick: () => this.setBoxingOutcome(o),
             style: { flex: 1, textAlign: 'center', padding: '10px 4px', borderRadius: 8, fontSize: 10, fontWeight: 900, cursor: 'pointer', background: d.outcome === o ? '#ef4444' : 'rgba(255,255,255,.06)', color: '#fff' }
           }, label))
         ),
-        d.outcome && React.createElement('div', { key: 'auto', style: { fontSize: 9, fontWeight: 800, color: '#22c55e', marginBottom: 14 } }, '✓ Picked ' + (d.outcome === 'a' ? ev.f1 : ev.f2) + ' by KO · 500 PTS if correct'),
-        !d.outcome && React.createElement('div', { key: 'autospace', style: { fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,.4)', marginBottom: 14 } }, 'No pick needed if you think it goes the distance — that bonus is automatic.'),
+        d.outcome && React.createElement('div', { key: 'auto', style: { fontSize: 9, fontWeight: 800, color: '#22c55e', marginBottom: 14 } }, '✓ Picked ' + (d.outcome === 'a' ? ev.f1 : ev.f2) + ' by KO'),
+        !d.outcome && React.createElement('div', { key: 'autospace', style: { fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,.4)', marginBottom: 14 } }, 'No pick needed — full-fight scoring applies either way.'),
         React.createElement('div', { key: 'submit', onClick: () => this.submitBoxingScorecard(ev), style: { textAlign: 'center', padding: '12px 0', borderRadius: 999, background: '#f2b544', color: '#2b1b00', fontWeight: 900, fontSize: 13, cursor: 'pointer' } }, 'SUBMIT SCORECARD — 100 FM')
       ]);
     }
@@ -2711,15 +2716,15 @@ class Component extends DCLogic {
           }, label))
         ),
         React.createElement('div', { key: 'ol', style: { fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,.5)', marginBottom: 4 } }, 'MATCH OUTCOME'),
-        React.createElement('div', { key: 'ol2', style: { fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,.4)', marginBottom: 6 } }, 'Pick who wins by KO for 500 pts. If it goes the distance instead, a 500-pt bonus is randomly inserted into one round for either corner.'),
+        React.createElement('div', { key: 'ol2', style: { fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,.4)', marginBottom: 6 } }, 'Every fight is scored fully as if it goes the distance — even on a KO. This pick is for bragging rights and doesn\'t change your stat score.'),
         React.createElement('div', { key: 'orow', style: { display: 'flex', gap: 6, marginBottom: 6 } },
-          [['a', ev.f1 + ' KO · 500 PTS'], ['b', ev.f2 + ' KO · 500 PTS']].map(([o, label]) => React.createElement('div', {
+          [['a', ev.f1 + ' WINS BY KO'], ['b', ev.f2 + ' WINS BY KO']].map(([o, label]) => React.createElement('div', {
             key: o, onClick: () => this.setMmaOutcome(o),
             style: { flex: 1, textAlign: 'center', padding: '10px 4px', borderRadius: 8, fontSize: 10, fontWeight: 900, cursor: 'pointer', background: d.outcome === o ? '#ef4444' : 'rgba(255,255,255,.06)', color: '#fff' }
           }, label))
         ),
-        d.outcome && React.createElement('div', { key: 'auto', style: { fontSize: 9, fontWeight: 800, color: '#22c55e', marginBottom: 14 } }, '✓ Picked ' + (d.outcome === 'a' ? ev.f1 : ev.f2) + ' by KO · 500 PTS if correct'),
-        !d.outcome && React.createElement('div', { key: 'autospace', style: { fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,.4)', marginBottom: 14 } }, 'No pick needed if you think it goes the distance — that bonus is automatic.'),
+        d.outcome && React.createElement('div', { key: 'auto', style: { fontSize: 9, fontWeight: 800, color: '#22c55e', marginBottom: 14 } }, '✓ Picked ' + (d.outcome === 'a' ? ev.f1 : ev.f2) + ' by KO'),
+        !d.outcome && React.createElement('div', { key: 'autospace', style: { fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,.4)', marginBottom: 14 } }, 'No pick needed — full-fight scoring applies either way.'),
         React.createElement('div', { key: 'submit', onClick: () => this.submitMmaScorecard(ev), style: { textAlign: 'center', padding: '12px 0', borderRadius: 999, background: '#4d8dff', fontWeight: 900, fontSize: 13, cursor: 'pointer' } }, 'SUBMIT SCORECARD — 100 FM')
       ]);
     }
@@ -2806,7 +2811,7 @@ class Component extends DCLogic {
         }
       },
         React.createElement('div', { style: { position: 'absolute', inset: 0, background: 'radial-gradient(circle at 20% 0%, rgba(168,85,247,.25), transparent 55%), radial-gradient(circle at 80% 100%, rgba(239,68,68,.2), transparent 55%)', pointerEvents: 'none' } }),
-        React.createElement('div', { style: { fontSize: 9, fontWeight: 900, letterSpacing: 2, color: '#f2c869', marginBottom: 10 } }, 'FANTASY MMADNESS · FIGHT IQ RECEIPT'),
+        React.createElement('div', { style: { fontSize: 9, fontWeight: 900, letterSpacing: 2, color: '#f2c869', marginBottom: 10 } }, 'FANTASY MMAdness · FIGHT IQ RECEIPT'),
         React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 } },
           React.createElement('div', { style: { width: 44, height: 44, borderRadius: '50%' } }, React.createElement('image-slot', { id: 'avatar', shape: 'circle', placeholder: 'Photo', fit: 'cover' })),
           React.createElement('div', null,
