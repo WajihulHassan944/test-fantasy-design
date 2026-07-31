@@ -26,6 +26,7 @@
 <body>
 <x-dc>
 
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#05060a"/><text x="100" y="90" text-anchor="middle" font-family="Arial" font-weight="900" font-size="34" fill="#f2b544">FM</text><text x="100" y="130" text-anchor="middle" font-family="Arial" font-weight="700" font-size="16" fill="#ef4444">MMAdness</text></svg></template>
 <helmet data-dc-atomics>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
@@ -96,6 +97,8 @@ class Component extends DCLogic {
     modalData: null,
     coins: 12450,
     rewardClaimed: false,
+    hasPurchased: false,
+    isSubscribed: false,
     streakDay: 5,
     votes: { jones: 76, aspinall: 24 },
     userVote: null,
@@ -144,6 +147,7 @@ class Component extends DCLogic {
     fantasyCampaigns: [
       { id: 'fc1', name: 'Summer Combat Season', host: 'FantasyMMAdness (Official)', span: 'JUL 27 – AUG 25', pot: 8500, entryFee: 200, joined: false, roster: null },
       { id: 'fc2', name: 'KO_Beast\'s Cross-Genre Cup', host: 'KO_Beast', span: 'JUL 27 – AUG 25', pot: 3100, entryFee: 100, joined: false, roster: null },
+      { id: 'fc3', name: "Aspinall's Fight Card", host: 'Tom Aspinall', span: 'JUL 27 – AUG 25', pot: 12400, entryFee: 150, joined: false, roster: null, fighterHosted: true },
     ],
     fantasyDraft: { boxing: null, mma: null, bareknuckle: null, kickboxing: null, wrestling: null },
     chestBurst: false,
@@ -663,6 +667,32 @@ class Component extends DCLogic {
     this.showToast('Entered ' + ev.tag + '! -100 FM');
   };
 
+  saveStreak = () => {
+    if (this.state.coins < 50) { this.showToast('Not enough FM coins to save your streak'); this.openModal('addcoins'); return; }
+    this.playBell();
+    this.setState(s => ({ coins: s.coins - 50, streakExpiresIn: 24 * 3600 }));
+    this.showToast('🔥 Streak saved for 50 FM — timer reset!');
+  };
+
+  unlockNextReward = () => {
+    if (this.state.coins < 75) { this.showToast('Not enough FM coins to skip the wait'); this.openModal('addcoins'); return; }
+    this.playCheer(); this.playBell();
+    this.setState(s => ({
+      coins: s.coins - 75 + 250,
+      rewardClaimed: false,
+      streakDay: Math.min(7, s.streakDay + 1),
+      chestBounce: s.chestBounce + 1,
+      streakExpiresIn: 24 * 3600,
+    }));
+    this.showToast('⚡ Skipped the wait — next reward unlocked for 75 FM!');
+  };
+
+  subscribeFmPlus = () => {
+    this.playCheer();
+    this.setState(s => ({ isSubscribed: true, coins: s.coins + 1000, modal: null }));
+    this.showToast('⭐ Welcome to FM+ — 1,000 bonus FM added!');
+  };
+
   claimReward = () => {
     if (this.state.rewardClaimed) return;
     this.playCheer(); this.playBell();
@@ -678,7 +708,10 @@ class Component extends DCLogic {
 
   addCoins = (amount, price) => {
     this.playCheer();
-    this.setState(s => ({ coins: s.coins + amount, modal: null }));
+    const bonus = !this.state.hasPurchased;
+    const total = bonus ? amount * 2 : amount;
+    this.setState(s => ({ coins: s.coins + total, modal: null, hasPurchased: true }));
+    this.showToast(bonus ? ('🎉 First purchase bonus — ' + total.toLocaleString() + ' FM added (2X)!') : (total.toLocaleString() + ' FM added!'));
     this.showToast('+' + amount.toLocaleString() + ' FM added!');
   };
 
@@ -1427,8 +1460,14 @@ class Component extends DCLogic {
         s.fantasyCampaigns.map(c => React.createElement('div', {
           key: c.id, style: { background: 'rgba(255,255,255,.05)', border: '1px solid rgba(168,85,247,.4)', borderRadius: 12, padding: 12, marginBottom: 8, boxShadow: '0 0 12px rgba(168,85,247,.25)' }
         },
-          React.createElement('div', { style: { fontWeight: 900, fontSize: 13, marginBottom: 2 } }, c.name),
-          React.createElement('div', { style: { fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.5)', marginBottom: 8 } }, 'Hosted by ' + c.host + ' · ' + c.span),
+          React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 } },
+            React.createElement('div', { style: { fontWeight: 900, fontSize: 13 } }, c.name),
+            c.fighterHosted && React.createElement('span', { style: { fontSize: 8.5, fontWeight: 900, color: '#05060a', background: '#f2b544', borderRadius: 999, padding: '2px 7px' } }, '✓ FIGHTER')
+          ),
+          React.createElement('div', {
+            onClick: c.fighterHosted ? () => this.openModal('fighterAffiliate', c) : undefined,
+            style: { fontSize: 9, fontWeight: 700, color: c.fighterHosted ? '#f2c869' : 'rgba(255,255,255,.5)', marginBottom: 8, cursor: c.fighterHosted ? 'pointer' : 'default', textDecoration: c.fighterHosted ? 'underline' : 'none' }
+          }, 'Hosted by ' + c.host + ' · ' + c.span),
           c.joined ? React.createElement('div', null,
             React.createElement('div', { style: { fontSize: 9, fontWeight: 700, color: '#22c55e', marginBottom: 8 } }, '✓ Roster locked: ' + Object.values(c.roster).join(' · ')),
             React.createElement('div', { style: { textAlign: 'center', padding: '8px 0', borderRadius: 8, background: 'rgba(34,197,94,.15)', color: '#22c55e', fontWeight: 900, fontSize: 11 } }, 'CUMULATIVE SCORE: 0 PTS — SEASON UNDERWAY')
@@ -2079,6 +2118,10 @@ class Component extends DCLogic {
         ))
       ),
       React.createElement('div', {
+        onClick: (e) => { e.stopPropagation(); this.openModal('aiScout'); },
+        style: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, textAlign: 'center', padding: '11px 0', borderRadius: 10, marginBottom: 8, background: 'linear-gradient(90deg,#4d8dff,#a855f7)', border: 'none', fontWeight: 900, fontSize: 12.5, color: '#fff', cursor: 'pointer', boxShadow: '0 0 16px rgba(77,141,255,.6)', animation: 'glowPulse 3s ease-in-out infinite' }
+      }, '\ud83e\udd16 AI SCOUTING REPORT \u2014 NEW FOR THIS FIGHT'),
+      React.createElement('div', {
         onClick: () => this.openModal('predictModal', { id: 1, tag: 'UFC 323', f1: 'JONES', f2: 'ASPINALL', prize: '$100,000' }),
         style: { textAlign: 'center', padding: '10px 0', borderRadius: 10, background: 'linear-gradient(90deg,#ef4444,#b91c1c)', fontWeight: 900, fontSize: 13, cursor: 'pointer' }
       }, 'MAKE PREDICTIONS')
@@ -2146,7 +2189,11 @@ class Component extends DCLogic {
         React.createElement('div', {
           onClick: this.claimReward,
           style: { marginTop: 4, padding: '7px 0', borderRadius: 8, fontSize: 11, fontWeight: 900, cursor: s.rewardClaimed ? 'default' : 'pointer', background: s.rewardClaimed ? 'rgba(34,197,94,.15)' : '#f2b544', color: s.rewardClaimed ? '#22c55e' : '#2b1b00', animation: s.rewardClaimed ? 'none' : 'joinGlow 2s ease-in-out infinite' }
-        }, s.rewardClaimed ? 'CLAIMED ✓' : 'CLAIM REWARD')
+        }, s.rewardClaimed ? 'CLAIMED ✓' : 'CLAIM REWARD'),
+        s.rewardClaimed && React.createElement('div', {
+          onClick: this.unlockNextReward,
+          style: { marginTop: 6, textAlign: 'center', padding: '6px 0', borderRadius: 8, fontSize: 9.5, fontWeight: 900, cursor: 'pointer', background: 'rgba(168,85,247,.15)', border: '1px solid rgba(168,85,247,.4)', color: '#c9a3ff' }
+        }, '⚡ SKIP WAIT — 75 FM')
       ),
       React.createElement('div', { style: { flex: 1, background: 'radial-gradient(circle at 50% -30%, rgba(255,255,255,.18), transparent 55%), radial-gradient(ellipse 80% 60% at 15% 110%, rgba(239,68,68,.22), transparent 60%), radial-gradient(ellipse 80% 60% at 85% 110%, rgba(77,141,255,.22), transparent 60%), rgba(255,255,255,.05)', border: '1px solid #f2b54490', borderRadius: 12, padding: 10, boxShadow: '0 0 18px #f2b54460, inset 0 0 14px #f2b54420' } },
         React.createElement('div', { style: { fontSize: 10, fontWeight: 800, color: '#f2b544', marginBottom: 4 } }, 'COINS WALLET'),
@@ -2188,7 +2235,11 @@ class Component extends DCLogic {
         React.createElement('div', { style: { fontSize: 11, fontWeight: 800, color: '#f2b544', animation: 'moneyPulseGold 1.8s ease-in-out infinite' } }, '+250 FM'),
         !s.rewardClaimed && React.createElement('div', {
           style: { fontSize: 8.5, fontWeight: 900, marginTop: 6, color: s.streakExpiresIn < 3600 ? '#ff2020' : '#ffce54', textShadow: '0 1px 4px rgba(0,0,0,.8)', animation: s.streakExpiresIn < 3600 ? 'pulseLive 1s infinite' : 'none' }
-        }, '⏳ Streak expires in ' + Math.floor(s.streakExpiresIn / 3600) + 'h ' + Math.floor((s.streakExpiresIn % 3600) / 60) + 'm')
+        }, '⏳ Streak expires in ' + Math.floor(s.streakExpiresIn / 3600) + 'h ' + Math.floor((s.streakExpiresIn % 3600) / 60) + 'm'),
+        s.streakExpiresIn < 3600 && s.streakExpiresIn > 0 && React.createElement('div', {
+          onClick: this.saveStreak,
+          style: { marginTop: 6, textAlign: 'center', padding: '6px 0', borderRadius: 8, fontSize: 9.5, fontWeight: 900, cursor: 'pointer', background: '#ef4444', color: '#fff', animation: 'joinGlow 1.4s ease-in-out infinite' }
+        }, '💾 SAVE STREAK — 50 FM')
         )
       )
     );
@@ -2531,21 +2582,51 @@ class Component extends DCLogic {
       ))
     ]);
 
+    if (s.modal === 'subscribe') return overlay([
+      closeBtn,
+      React.createElement('div', {
+        key: 'card', style: {
+          borderRadius: 16, padding: 18, marginBottom: 14, position: 'relative', overflow: 'hidden',
+          background: 'linear-gradient(160deg,#1a0e2e,#05060a 65%)', border: '1px solid rgba(168,85,247,.5)', boxShadow: '0 0 26px rgba(168,85,247,.4)'
+        }
+      },
+        React.createElement('div', { style: { position: 'absolute', inset: 0, background: 'radial-gradient(circle at 20% 0%, rgba(168,85,247,.25), transparent 55%), radial-gradient(circle at 80% 100%, rgba(77,141,255,.2), transparent 55%)', pointerEvents: 'none' } }),
+        React.createElement('div', { style: { fontFamily: "'Anton',sans-serif", fontSize: 22, color: '#fff', marginBottom: 2 } }, '\u2b50 FM+ MEMBERSHIP'),
+        React.createElement('div', { style: { fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.6)', marginBottom: 12 } }, '$4.99 / month \u00b7 cancel anytime'),
+        React.createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 4 } },
+          ['1,000 bonus FM coins every month', 'Early access to new Fantasy Cards', 'Exclusive FM+ private leagues', 'No ads across the app', '2X streak-save discount (25 FM instead of 50)'].map((f, i) => React.createElement('div', {
+            key: i, style: { display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, fontWeight: 700, color: 'rgba(255,255,255,.85)' }
+          },
+            React.createElement('span', { style: { color: '#a855f7', fontWeight: 900 } }, '\u2713'), f
+          ))
+        )
+      ),
+      React.createElement('div', {
+        onClick: this.subscribeFmPlus,
+        style: { textAlign: 'center', padding: '13px 0', borderRadius: 999, background: 'linear-gradient(90deg,#a855f7,#4d8dff)', fontWeight: 900, fontSize: 13, cursor: 'pointer', boxShadow: '0 0 14px rgba(168,85,247,.6)' }
+      }, s.isSubscribed ? 'YOU\u2019RE AN FM+ MEMBER \u2713' : 'JOIN FM+ \u2014 $4.99/MO')
+    ]);
+
     if (s.modal === 'wallet' || s.modal === 'addcoins') return overlay([
       closeBtn,
       React.createElement('div', { key: 't', style: { fontFamily: "'Anton',sans-serif", fontSize: 18, marginBottom: 4, color: '#f2b544' } }, 'FM COINS'),
       React.createElement('div', { key: 'b', style: { fontSize: 26, fontWeight: 800, marginBottom: 12, color: '#f2b544', animation: 'moneyPulseGold 1.8s ease-in-out infinite' } }, s.coins.toLocaleString() + ' coins'),
       React.createElement('div', { key: 'l', style: { fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.5)', marginBottom: 8 } }, 'ADD MORE'),
       React.createElement('div', { key: 'p', style: { display: 'flex', flexDirection: 'column', gap: 8 } },
+        !s.hasPurchased && React.createElement('div', { key: 'fb', style: { fontSize: 10.5, fontWeight: 900, color: '#22c55e', background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.4)', borderRadius: 8, padding: '7px 9px', marginBottom: 2 } }, '🎁 First purchase gets you DOUBLE coins — today only'),
         [[1000, '$0.99', false], [5000, '$3.99', true], [15000, '$9.99', false]].map(([amt, price, popular]) => React.createElement('div', {
           key: amt, onClick: () => this.addCoins(amt, price),
           style: { position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', borderRadius: 10, background: popular ? 'rgba(242,181,68,.1)' : 'rgba(255,255,255,.05)', border: popular ? '1.5px solid #f2b544' : '1px solid rgba(242,181,68,.3)', cursor: 'pointer' }
         },
           popular && React.createElement('div', { style: { position: 'absolute', top: -9, left: 12, fontSize: 8.5, fontWeight: 900, letterSpacing: .4, color: '#2b1b00', background: 'linear-gradient(90deg,#ffd873,#f2b544)', borderRadius: 999, padding: '2px 8px' } }, 'MOST POPULAR'),
-          React.createElement('span', { style: { fontWeight: 800 } }, amt.toLocaleString() + ' FM'),
+          React.createElement('span', { style: { fontWeight: 800 } }, amt.toLocaleString() + ' FM' + (!s.hasPurchased ? ' → ' + (amt * 2).toLocaleString() + ' FM' : '')),
           React.createElement('span', { style: { fontWeight: 800, color: '#f2b544', animation: 'moneyPulseGold 1.8s ease-in-out infinite' } }, price)
         ))
-      )
+      ),
+      React.createElement('div', {
+        key: 'fmplus', onClick: () => this.openModal('subscribe'),
+        style: { marginTop: 12, textAlign: 'center', padding: '11px 0', borderRadius: 10, background: 'linear-gradient(90deg,#a855f7,#4d8dff)', fontWeight: 900, fontSize: 12, cursor: 'pointer', boxShadow: '0 0 14px rgba(168,85,247,.5)' }
+      }, s.isSubscribed ? '✓ FM+ MEMBER — MANAGE' : '⭐ GO FM+ — BONUS COINS EVERY MONTH')
     ]);
 
     if (s.modal === 'join') return overlay([
@@ -2832,6 +2913,66 @@ class Component extends DCLogic {
         onClick: () => this.showToast('Receipt saved — ready to share!'),
         style: { textAlign: 'center', padding: '12px 0', borderRadius: 999, background: 'linear-gradient(90deg,#a855f7,#ec4899)', fontWeight: 900, fontSize: 13, cursor: 'pointer', boxShadow: '0 0 14px rgba(168,85,247,.6)' }
       }, '📤 SAVE & SHARE')
+    ]);
+
+    if (s.modal === 'aiScout') return overlay([
+      closeBtn,
+      React.createElement('div', {
+        key: 'card', style: {
+          borderRadius: 16, padding: 18, marginBottom: 14, position: 'relative', overflow: 'hidden',
+          background: 'linear-gradient(160deg,#0d1a2e,#05060a 65%)', border: '1px solid rgba(77,141,255,.5)', boxShadow: '0 0 26px rgba(77,141,255,.35)'
+        }
+      },
+        React.createElement('div', { style: { position: 'absolute', inset: 0, background: 'radial-gradient(circle at 15% 0%, rgba(77,141,255,.25), transparent 55%), radial-gradient(circle at 85% 100%, rgba(242,181,68,.15), transparent 55%)', pointerEvents: 'none' } }),
+        React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 } },
+          React.createElement('div', { style: { width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg,#4d8dff,#a855f7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 } }, '🤖'),
+          React.createElement('div', null,
+            React.createElement('div', { style: { fontFamily: "'Anton',sans-serif", fontSize: 15, color: '#fff' } }, 'AI SCOUTING ASSISTANT'),
+            React.createElement('div', { style: { fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,.5)', letterSpacing: .5 } }, 'JONES vs ASPINALL · UFC 323')
+          )
+        ),
+        React.createElement('div', { style: { fontSize: 12, lineHeight: 1.6, color: 'rgba(255,255,255,.85)', marginBottom: 10 } }, '"Aspinall\u2019s takedown defense has improved 22% since his last title bout, but Jones lands 3.4 more significant strikes per round historically. Fights that go past round 2 favor the underdog here."'),
+        React.createElement('div', { style: { display: 'flex', gap: 8, marginBottom: 10 } },
+          [['64%', 'PICKED JONES'], ['36%', 'PICKED ASPINALL'], ['+2X', 'UNDERDOG BONUS']].map(([v, l], i) => React.createElement('div', { key: i, style: { flex: 1, textAlign: 'center', background: 'rgba(255,255,255,.05)', borderRadius: 8, padding: '8px 4px' } },
+            React.createElement('div', { style: { fontFamily: "'Anton',sans-serif", fontSize: 15, color: '#f2c869' } }, v),
+            React.createElement('div', { style: { fontSize: 7, fontWeight: 800, color: 'rgba(255,255,255,.5)' } }, l)
+          ))
+        ),
+        React.createElement('div', { style: { background: 'rgba(242,181,68,.12)', border: '1px solid rgba(242,181,68,.4)', borderRadius: 8, padding: 8, fontSize: 10.5, fontWeight: 800, color: '#f2c869', textAlign: 'center' } }, '\ud83d\udca1 Users who followed this insight went 3-1 last event')
+      ),
+      React.createElement('div', {
+        onClick: () => { this.closeModal(); this.openModal('predictModal', { id: 1, tag: 'UFC 323', f1: 'JONES', f2: 'ASPINALL', prize: '$100,000' }); },
+        style: { textAlign: 'center', padding: '13px 0', borderRadius: 999, background: 'linear-gradient(90deg,#4d8dff,#a855f7)', fontWeight: 900, fontSize: 13, cursor: 'pointer', boxShadow: '0 0 14px rgba(77,141,255,.6)' }
+      }, 'USE THIS INSIGHT \u2014 MAKE MY PICK')
+    ]);
+
+    if (s.modal === 'fighterAffiliate') return overlay([
+      closeBtn,
+      React.createElement('div', { key: 'hero', style: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 } },
+        React.createElement('div', { style: { width: 60, height: 60, borderRadius: '50%', flex: '0 0 auto', boxShadow: '0 0 18px rgba(242,181,68,.5)' } }, React.createElement('image-slot', { id: 'fighter-affiliate-photo', shape: 'circle', placeholder: 'Fighter photo', fit: 'cover' })),
+        React.createElement('div', null,
+          React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 6 } },
+            React.createElement('div', { style: { fontFamily: "'Anton',sans-serif", fontSize: 18, color: '#fff' } }, s.modalData ? s.modalData.host : 'Tom Aspinall'),
+            React.createElement('span', { style: { fontSize: 8.5, fontWeight: 900, color: '#05060a', background: '#f2b544', borderRadius: 999, padding: '2px 7px' } }, '\u2713 VERIFIED FIGHTER')
+          ),
+          React.createElement('div', { style: { fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.5)' } }, 'UFC Heavyweight \u00b7 Fighter Affiliate')
+        )
+      ),
+      React.createElement('div', { key: 'b', style: { fontSize: 12, lineHeight: 1.6, color: 'rgba(255,255,255,.8)', marginBottom: 12 } }, 'This Fantasy Card is hosted directly by the fighter. Fans who follow ' + (s.modalData ? s.modalData.host : 'this fighter') + ' get notified the moment a new card drops \u2014 draft your roster, compete with other fans, and the fighter earns a share of every pot.'),
+      React.createElement('div', { key: 'stats', style: { display: 'flex', gap: 8, marginBottom: 12 } },
+        [['48.2K', 'FOLLOWERS'], ['12,400', 'FM POT'], ['3', 'CARDS HOSTED']].map(([v, l], i) => React.createElement('div', { key: i, style: { flex: 1, textAlign: 'center', background: 'rgba(242,181,68,.1)', border: '1px solid rgba(242,181,68,.3)', borderRadius: 8, padding: '8px 4px' } },
+          React.createElement('div', { style: { fontFamily: "'Anton',sans-serif", fontSize: 15, color: '#f2c869' } }, v),
+          React.createElement('div', { style: { fontSize: 7, fontWeight: 800, color: 'rgba(255,255,255,.5)' } }, l)
+        ))
+      ),
+      React.createElement('div', {
+        onClick: () => { this.showToast('Following ' + (s.modalData ? s.modalData.host : 'fighter') + ' \u2014 you\u2019ll be first to know about new cards'); },
+        style: { textAlign: 'center', padding: '11px 0', borderRadius: 10, marginBottom: 8, background: 'rgba(242,181,68,.12)', border: '1px solid rgba(242,181,68,.5)', color: '#f2c869', fontWeight: 900, fontSize: 12, cursor: 'pointer' }
+      }, '+ FOLLOW FIGHTER'),
+      React.createElement('div', {
+        onClick: () => { this.closeModal(); this.openModal('fantasyDraft', s.modalData); },
+        style: { textAlign: 'center', padding: '13px 0', borderRadius: 999, background: 'linear-gradient(90deg,#f2b544,#f2c869)', color: '#2b1b00', fontWeight: 900, fontSize: 13, cursor: 'pointer', boxShadow: '0 0 14px rgba(242,181,68,.5)' }
+      }, 'DRAFT THIS FIGHT CARD \u2014 ' + (s.modalData ? s.modalData.entryFee : 150) + ' FM')
     ]);
 
     if (s.modal === 'affiliate') return overlay([
